@@ -27,16 +27,17 @@ module fifo #(
       for(i = 0; i < FIFO_DEPTH; i=i+1) begin
         memory[i] <= 0;
       end
-    else begin
-      if(i_write & ~o_full) begin
-        memory[write_ptr] <= i_data;
-        write_ptr = write_ptr + 1;
-      end
-      if(i_read & ~o_empty) begin
-        o_data <= memory[read_ptr];
-        read_ptr = read_ptr + 1;
-      end
     end
+    else begin
+        if(i_write & ~o_full) begin
+            memory[write_ptr] <= i_data;
+            write_ptr = write_ptr + 1;
+          end
+          if(i_read & ~o_empty) begin
+            o_data <= memory[read_ptr];
+            read_ptr = read_ptr + 1;
+          end
+      end
 
   end
 
