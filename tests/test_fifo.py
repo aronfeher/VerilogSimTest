@@ -31,25 +31,26 @@ async def fifo_test(dut):
             dut.i_write.value = 1
             dut.i_read.value = 0
             dut.i_data.value = i
-        else if 6 <= i <= 9: 
-            dut.i_write.value = 0
-            dut.i_read.value = 1
-            temp = int(dut.o_data.value)
         else:
-            dut.i_write.value = 1
-            dut.i_read.value = 1
-            dut.i_data.value = i
-            temp = int(dut.o_data.value)
+            if 6 <= i <= 9: 
+                dut.i_write.value = 0
+                dut.i_read.value = 1
+                temp = int(dut.o_data.value)
+            else:
+                dut.i_write.value = 1
+                dut.i_read.value = 1
+                dut.i_data.value = i
+                temp = int(dut.o_data.value)
     
         await RisingEdge(dut.clk)
-        result.append(temp)
+        result_data.append(temp)
         result_full.append(int(dut.o_full))
         result_empty.append(int(dut.o_empty))
 
     # Check the final input on the next clock
     await RisingEdge(dut.clk)
 
-    print(f" The HDL result: {result}")
+    print(f" The HDL result: {result_data}")
     print(f" The HDL full result: {result_full}")
     print(f" The HDL empty result: {result_empty}")
 
