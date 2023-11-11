@@ -40,4 +40,9 @@ module fifo #(
 
   end
 
+  initial begin
+        $dumpfile("waves.vcd");
+        $dumpvars;
+    end
+
 endmodule
