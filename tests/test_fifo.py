@@ -9,76 +9,74 @@ from cocotb.runner import get_runner
 import numpy as np
 
 @cocotb.test()
-    dut.data_in.value = 0
-    dut.rst_n.value = 0
+async def fifo_test(dut):
+    dut.i_data.value = 0
+    dut.i_rst_n.value = 0
 
-    clock = Clock(dut.clk, 10, units="us")
+    clock = Clock(dut.i_clk, 10, units="us")
     cocotb.start_soon(clock.start(start_high=False))
 
-    await RisingEdge(dut.clk)
-    val = 0
-    result = []
-    exp = [0, 0]
-    maf = moving_average_filter(8)
+    await RisingEdge(dut.i_clk)
 
-    for i in range(20):
+    result_data = []
+    result_full = []
+    result_empty = []
+
+    for i in range(15):
         if i <= 1:
-            dut.rst_n.value = 0
+            dut.i_rst_n.value = 0
         else:
-            dut.rst_n.value = 1
-        if i < 4:
-            val = 0
-        else: 
-            val = 500
+            dut.i_rst_n.value = 1
+        if 2 <= i <= 5:
+            dut.i_write.value = 1
+            dut.i_read.value = 0
+            dut.i_data.value = i
+        else if 6 <= i <= 9: 
+            dut.i_write.value = 0
+            dut.i_read.value = 1
+            temp = int(dut.o_data.value)
+        else:
+            dut.i_write.value = 1
+            dut.i_read.value = 1
+            dut.i_data.value = i
+            temp = int(dut.o_data.value)
     
-        dut.data_in.value = val  
-        expected = maf.filter(val)
         await RisingEdge(dut.clk)
-        result.append(int(dut.data_out.value))
-        exp.append(int(expected))
+        result.append(temp)
+        result_full.append(int(dut.o_full))
+        result_empty.append(int(dut.o_empty))
 
     # Check the final input on the next clock
     await RisingEdge(dut.clk)
 
     print(f" The HDL result: {result}")
-    print(f" The python result: {exp}")
-    plt.figure(1)
-    plt.title("Moving average filter")
-    plt.plot(result)
-    plt.plot(exp)
-    plt.xlabel("Samples (1)")
-    plt.ylabel("Value (1)")
-    plt.grid(True)
-    plt.legend(["Verilog", "Python"])
-    plt.savefig('foo.png')
+    print(f" The HDL full result: {result_full}")
+    print(f" The HDL empty result: {result_empty}")
 
 
 
 
-def test_simple_shifter_runner():
+def test_simple_fifo_runner():
     hdl_toplevel_lang = os.getenv("HDL_TOPLEVEL_LANG", "verilog")
     sim = os.getenv("SIM", "icarus")
 
     proj_path = Path(__file__).resolve().parent
 
     verilog_sources = []
-    vhdl_sources = []
 
     if hdl_toplevel_lang == "verilog":
-        verilog_sources = [proj_path / "shifter.sv"]
-    else:
-        vhdl_sources = [proj_path / "shifter.vhdl"]
+        verilog_sources = [proj_path / "fifo.sv"]
 
     runner = get_runner(sim)
     runner.build(
         verilog_sources=verilog_sources,
         vhdl_sources=vhdl_sources,
-        hdl_toplevel="shifter",
+        hdl_toplevel="fifo",
         always=True,
     )
 
-    runner.test(hdl_toplevel="shifter", test_module="test_shifter,")
+    runner.test(hdl_toplevel="fifo", test_module="test_fifo,")
 
 
 if __name__ == "__main__":
-    test_simple_shifter_runner()
+    test_simple_fifo_runner()
