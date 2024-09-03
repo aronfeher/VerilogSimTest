@@ -51,8 +51,8 @@ async def fifo_test(dut):
     await RisingEdge(dut.i_clk)
 
     print(f" The HDL result: {result_data}")
-    print(f" The HDL full result: {result_full}")
-    print(f" The HDL empty result: {result_empty}")
+    print(f" The full result: {result_full}")
+    print(f" The empty result: {result_empty}")
 
 
 
